@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+.secrets/
 
 node_modules/
 
@@ -16,3 +17,4 @@ Thumbs.db
 
 # Backup files
 backups/
+restore-test/

@@ -1,0 +1,19 @@
+{
+  "name": "studynow-devops-app",
+  "version": "1.0.0",
+  "description": "Small Node.js and MongoDB application for the Study Now DevOps assessment",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongoose": "^8.9.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.17.0"
+  }
+}
