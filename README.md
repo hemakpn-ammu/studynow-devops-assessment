@@ -66,7 +66,7 @@ The project demonstrates containerized application deployment, database manageme
                     ───────────────
                     app + mongo + nginx
 
----
+```
 
 ## 3. Project Structure
 
