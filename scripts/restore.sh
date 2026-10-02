@@ -43,14 +43,14 @@ age \
 
 echo "Restoring MongoDB database..."
 
-docker exec \
-  -e MONGO_APP_USERNAME="$MONGO_APP_USERNAME" \
-  -e MONGO_APP_PASSWORD="$MONGO_APP_PASSWORD" \
+docker exec -i \
+  -e MONGO_ROOT_USERNAME="$MONGO_ROOT_USERNAME" \
+  -e MONGO_ROOT_PASSWORD="$MONGO_ROOT_PASSWORD" \
   studynow-mongo \
   mongorestore \
-  --username="$MONGO_APP_USERNAME" \
-  --password="$MONGO_APP_PASSWORD" \
-  --authenticationDatabase=studynow \
+  --username="$MONGO_ROOT_USERNAME" \
+  --password="$MONGO_ROOT_PASSWORD" \
+  --authenticationDatabase=admin \
   --db=studynow \
   --archive \
   --gzip \
