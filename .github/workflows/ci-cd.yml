@@ -42,8 +42,46 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Build Docker image
+      - name: Build Docker Image
         run: docker build -t studynow-app:${{ github.sha }} ./app
 
-      - name: Verify Docker image
+      - name: Verify Docker Image
         run: docker image inspect studynow-app:${{ github.sha }}
+
+  deploy:
+    name: Blue-Green Deployment
+    needs: build-image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Create CI environment configuration
+        run: |
+          cat > .env <<'EOF'
+          MONGO_ROOT_USERNAME=ciroot
+          MONGO_ROOT_PASSWORD=cirootpass
+          MONGO_APP_USERNAME=ciapp
+          MONGO_APP_PASSWORD=ciapppass
+          ALERT_WEBHOOK_URL=
+          EOF
+
+      - name: Make deployment script executable
+        run: chmod +x scripts/deploy.sh
+
+      - name: Start Docker Compose environment
+        run: docker compose up -d mongo app_blue app_green nginx
+
+      - name: Deploy using blue-green strategy
+        run: ./scripts/deploy.sh
+
+      - name: Verify deployment health
+        run: curl -fsS http://localhost:8080/health
+
+      - name: Show running services
+        run: docker compose ps
+
+      - name: Clean up deployment environment
+        if: always()
+        run: docker compose down -v

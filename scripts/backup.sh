@@ -13,10 +13,20 @@ else
 fi
 
 BACKUP_DIR="./backups"
+OFFSITE_DIR="./backups/offsite-backups"
+KEY_FILE="./.secrets/backup-key.txt"
+
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
-BACKUP_FILE="${BACKUP_DIR}/mongodb_${TIMESTAMP}.archive.gz"
+DUMP_FILE="${BACKUP_DIR}/mongodb_${TIMESTAMP}.archive.gz"
+ENCRYPTED_FILE="${DUMP_FILE}.age"
 
 mkdir -p "$BACKUP_DIR"
+mkdir -p "$OFFSITE_DIR"
+
+if [ ! -f "$KEY_FILE" ]; then
+    echo "ERROR: age private key not found: $KEY_FILE"
+    exit 1
+fi
 
 echo "Starting MongoDB backup..."
 
@@ -30,7 +40,29 @@ docker exec \
   --authenticationDatabase=studynow \
   --db=studynow \
   --archive \
-  --gzip > "$BACKUP_FILE"
+  --gzip > "$DUMP_FILE"
 
-echo "MongoDB backup created:"
-echo "$BACKUP_FILE"
+echo "MongoDB dump created:"
+echo "$DUMP_FILE"
+
+echo "Encrypting backup with age..."
+
+RECIPIENT=$(age-keygen -y "$KEY_FILE")
+
+age --recipient "$RECIPIENT" \
+    --output "$ENCRYPTED_FILE" \
+    "$DUMP_FILE"
+
+rm -f "$DUMP_FILE"
+
+echo "Encrypted backup created:"
+echo "$ENCRYPTED_FILE"
+
+echo "Shipping encrypted backup to simulated off-provider location..."
+
+cp "$ENCRYPTED_FILE" "$OFFSITE_DIR/"
+
+echo "Offsite backup created:"
+echo "$OFFSITE_DIR/$(basename "$ENCRYPTED_FILE")"
+
+echo "Backup completed successfully."
