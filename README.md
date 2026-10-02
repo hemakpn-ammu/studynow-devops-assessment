@@ -70,6 +70,7 @@ The project demonstrates containerized application deployment, database manageme
 
 ## 3. Project Structure
 
+```text
 studynow-devops-assessment/
 │
 ├── app/
@@ -97,7 +98,7 @@ studynow-devops-assessment/
 ├── docker-compose.yml
 └── README.md
 
----
+```
 
 ## 4. Prerequisites
 
@@ -149,7 +150,9 @@ The application is deployed using Docker Compose.
 ```bash
 docker compose up -d --build
 
-**This command:**
+```
+
+This command:
 
 - Builds the application image.
 - Creates the required Docker network.
@@ -161,7 +164,7 @@ docker compose up -d --build
 
 ```bash
 docker compose ps
-
+```
 The expected services are:
 
 - studynow-app
@@ -172,7 +175,7 @@ The expected services are:
 
 ```bash
 docker compose logs app
-
+``` 
 The application should start successfully and establish a connection with MongoDB.
 
 ## 7. Application Health
@@ -183,18 +186,22 @@ The application provides a health endpoint to verify application availability an
 
 ```text
 /health
+```
 
 **The health endpoint can be checked from inside the application container:**
 
 ```bash
 docker exec studynow-app wget -q -O - http://127.0.0.1:3000/health
+```
 
 A healthy response is:
 
+```text
 {
   "status": "healthy",
   "database": "connected"
 }
+```
 
 The Docker health check also validates the application health endpoint.
 
@@ -219,15 +226,17 @@ Node.js Application
       v
 MongoDB
 
+```
+
 The Nginx configuration is maintained in:
 
-docker/nginx/nginx.conf
+`docker/nginx/nginx.conf`
 
 Nginx forwards incoming HTTP requests to the Node.js application running on the internal Docker network.
 
 The application is accessed externally through:
 
-http://localhost:8080
+`http://localhost:8080`
 
 ### Benefits
 
@@ -248,10 +257,11 @@ The MongoDB service is defined in:
 
 ```text
 docker-compose.yml
+```
 
 MongoDB uses port:
 
-27017
+`27017`
 
 The database data is stored using a persistent Docker volume.
 
@@ -261,11 +271,13 @@ Check the MongoDB container status:
 
 ```bash
 docker compose ps mongo
+```
 
 View MongoDB logs:
 
 ```bash
 docker compose logs mongo
+```
 
 ## 10. Security and Least Privilege
 
@@ -280,6 +292,7 @@ The application credentials are provided through:
 ```text
 MONGO_APP_USERNAME
 MONGO_APP_PASSWORD
+```
 
 ### The MongoDB root credentials are reserved for administrative operations such as:
 
@@ -308,6 +321,7 @@ The workflow is located at:
 
 ```text
 .github/workflows/ci-cd.yml
+```
 
 ### The pipeline uses:
 
@@ -345,6 +359,8 @@ Application Deployment
        v
 Health Validation
 
+```
+
 ### Deployment Approach
 
 - Application updates are performed independently from the MongoDB data layer.
@@ -363,6 +379,7 @@ The backup is stored as a compressed archive using the `.archive.gz` format.
 
 ```bash
 docker compose exec -T mongo sh -c 'mongodump --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --db studynow --archive --gzip' > backups/mongodb_restore_drill.archive.gz
+```
 
 ### The command:
 
@@ -379,7 +396,7 @@ The backup archive can be validated using:
 
 ```bash
 gzip -t backups/mongodb_restore_drill.archive.gz
-
+```
 A successful command with no output indicates that the gzip archive is valid.
 
 ## 14. Encrypted Backups
@@ -404,6 +421,8 @@ Encryption using age
     |
     v
 Encrypted Backup
+
+```
 
 ### Encryption Benefits
 - Protects backup data from unauthorized access.
@@ -443,16 +462,19 @@ Restore MongoDB Backup
        v
 Verify Restored Data
 
+```
+
 ### 15.1 Test Data
 
 A test document was created in the MongoDB notes collection.
 
 The test document contained:
+```text
 {
     Title: DevOps Assessment Test
     Message: Backup and restore validation
 }
-
+```
 The test data was used to verify that the backup and restore process recovered the expected application data.
 
 ### 15.2 Backup Creation
@@ -461,7 +483,7 @@ A fresh MongoDB backup was created immediately before the simulated data loss.
 
 The backup was created as a compressed MongoDB archive:
 
-backups/mongodb_restore_drill.archive.gz
+`backups/mongodb_restore_drill.archive.gz`
 
 ### 15.3 Backup Validation
 
@@ -469,7 +491,7 @@ The backup archive was validated using:
 
 ```bash
 gzip -t backups/mongodb_restore_drill.archive.gz
-
+```
 The validation completed successfully.
 
 ### 15.4 Data Loss Simulation
@@ -477,9 +499,9 @@ The validation completed successfully.
 The studynow.notes collection was intentionally dropped to simulate database data loss.
 
 After the simulated deletion, the document count was:
-
+```text
 0
-
+```
 This confirmed that the test data had been removed before starting the restore operation.
 
 ### 15.5 Restore Operation
@@ -488,20 +510,22 @@ The MongoDB backup was restored using mongorestore.
 
 ```bash
 cat backups/mongodb_restore_drill.archive.gz | docker compose exec -T mongo sh -c 'mongorestore --username "$MONGO_INITDB_ROOT_USERNAME" --password "$MONGO_INITDB_ROOT_PASSWORD" --authenticationDatabase admin --gzip --archive --drop'
-
+```
 The restore completed successfully with:
 
+```text
 1 document(s) restored successfully.
 0 document(s) failed to restore.
+```
 
 ### 15.6 Restore Verification
 
 After the restore operation, the notes collection was queried again.
 
 The test document was successfully restored and the document count returned to:
-
+```text
 1
-
+```
 This confirmed that the MongoDB backup could successfully recover the test data after simulated data loss.
 
 ## 16. RTO and RPO
@@ -516,7 +540,7 @@ The observed test RPO was approximately:
 
 ```text
 ~0 minutes
-
+```
 This value applies only to this test scenario.
 
 In a production environment, the actual RPO would depend on the configured backup frequency.
@@ -525,7 +549,7 @@ In a production environment, the actual RPO would depend on the configured backu
 
 The observed MongoDB restore execution time for the test dataset was:
 
-Less than 1 second
+`Less than 1 second`
 
 This measurement represents the database restore operation only.
 
@@ -544,7 +568,7 @@ A complete production recovery time could also include:
 
 Therefore, the observed result for this test was:
 
-Observed MongoDB restore execution time: < 1 second
+`Observed MongoDB restore execution time: < 1 second`
 
 The result demonstrates that the documented MongoDB restore mechanism works successfully for the test dataset.
 
@@ -592,14 +616,16 @@ The health check uses:
 
 ```text
 http://127.0.0.1:3000/health
+```
 
 Check the health status using:
 
 ```bash
 docker compose ps
+```
 
 The application container should report:
-healthy
+`healthy`
 
 ## 19. Useful Docker Commands
 
@@ -607,82 +633,82 @@ healthy
 
 ```bash
 docker compose up -d
-
+```
 ### Build and Start
 
 ```bash
 docker compose up -d --build
-
+```
 ### Check Running Services
 
 ```bash
 docker compose ps
-
+```
 ### View All Logs
 
 ```bash
 docker compose logs
-
+```
 ### View Application Logs
 
 ```bash
 docker compose logs app
-
+```
 ### Follow Application Logs
 
 ```bash
 docker compose logs -f app
-
+```
 ### Stop the Environment
 
 ```bash
 docker compose down
-
+```
 ### Stop the Environment and Remove Volumes
 
 Warning: This removes persistent Docker volumes, including MongoDB data.
 
 ```bash
 docker compose down -v
-
+```
 ## 20. Troubleshooting
 
 ### Check Container Status
 
 ```bash
 docker compose ps
-
+```
 ### Check Application Logs
 
 ```bash
 docker compose logs app
-
+```
 ### Check MongoDB Logs
 
 ```bash
 docker compose logs mongo
-
+```
 ### Check Nginx Logs
 
 ```bash
 docker compose logs nginx
-
+```
 ### Check Application Health
 
 ```bash
 docker exec studynow-app wget -q -O - http://127.0.0.1:3000/health
-
+````
 ### Restart the Environment
 
 ```bash
 docker compose down
 docker compose up -d --build
-
+```
 ### Check All Service Logs
 
 ```bash
 docker compose logs
-
+```
 ## 21. Assessment Evidence
 
 The following screenshots provide evidence of the implemented DevOps, security, CI/CD, backup, and disaster recovery requirements.
@@ -745,12 +771,12 @@ The following screenshots provide evidence of the implemented DevOps, security, 
 
 ```bash
 docker compose down
-
+```
 ### To also remove persistent Docker volumes:
 
 ```bash
 docker compose down -v
-
+```
 > **Warning:** `docker compose down -v` removes persistent Docker volumes, including MongoDB data.
 
 ## 23. Conclusion
